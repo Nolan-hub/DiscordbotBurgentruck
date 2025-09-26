@@ -1,0 +1,81 @@
+import discord
+from discord.ext import commands
+
+# Define the bot and the command prefix
+intents = discord.Intents.default()
+intents.members = True  # Enable member intents
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# Define the role that can execute moderation commands
+MODERATOR_ROLE = "Moderator"  # Change this to your moderator role name
+LOG_CHANNEL_ID = 123456789012345678  # Replace with your log channel ID
+
+# Function to check if the user has the required role
+def is_moderator():
+    def predicate(ctx):
+        return any(role.name == MODERATOR_ROLE for role in ctx.author.roles)
+    return commands.check(predicate)
+
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user.name}')
+
+@bot.command()
+@is_moderator()
+async def kick(ctx, member: discord.Member, *, reason=None):
+    try:
+        await member.kick(reason=reason)
+        await ctx.send(f'Kicked {member.mention} for: {reason}')
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+        await log_channel.send(f'{ctx.author.mention} kicked {member.mention} for: {reason}')
+    except discord.Forbidden:
+        await ctx.send("I do not have permission to kick this member.")
+    except discord.HTTPException:
+        await ctx.send("Failed to kick the member.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {str(e)}")
+
+@bot.command()
+@is_moderator()
+async def ban(ctx, member: discord.Member, *, reason=None):
+    try:
+        await member.ban(reason=reason)
+        await ctx.send(f'Banned {member.mention} for: {reason}')
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+        await log_channel.send(f'{ctx.author.mention} banned {member.mention} for: {reason}')
+    except discord.Forbidden:
+        await ctx.send("I do not have permission to ban this member.")
+    except discord.HTTPException:
+        await ctx.send("Failed to ban the member.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {str(e)}")
+
+@bot.command()
+@is_moderator()
+async def mute(ctx, member: discord.Member, *, reason=None):
+    try:
+        # Assuming you have a mute role set up
+        mute_role = discord.utils.get(ctx.guild.roles, name="Muted")
+        await member.add_roles(mute_role, reason=reason)
+        await ctx.send(f'Muted {member.mention} for: {reason}')
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+        await log_channel.send(f'{ctx.author.mention} muted {member.mention} for: {reason}')
+    except discord.Forbidden:
+        await ctx.send("I do not have permission to mute this member.")
+    except discord.HTTPException:
+        await ctx.send("Failed to mute the member.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {str(e)}")
+
+@bot.command()
+@is_moderator()
+async def warn(ctx, member: discord.Member, *, reason=None):
+    try:
+        await ctx.send(f'Warning {member.mention} for: {reason}')
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+        await log_channel.send(f'{ctx.author.mention} warned {member.mention} for: {reason}')
+    except Exception as e:
+        await ctx.send(f"An error occurred: {str(e)}")
+
+# Run the bot with your token
+bot.run('YOUR_BOT_TOKEN')  # Replace with your bot's token
