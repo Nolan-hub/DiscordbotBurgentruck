@@ -78,4 +78,4 @@ async def warn(ctx, member: discord.Member, *, reason=None):
         await ctx.send(f"An error occurred: {str(e)}")
 
 # Run the bot with your token
-bot.run('YOUR_BOT_TOKEN')  # Replace with your bot's token
+bot.run('MTM5NDc2NTQxODI0OTMyNjY0Mg.GUjBbT.-eg9leZoHjk9FdZNafbhQU9ksIcHtPbYTs5KEA')  # Replace with your bot's token
